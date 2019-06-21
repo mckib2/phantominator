@@ -13,7 +13,7 @@ setup(
     url='https://github.com/mckib2/phantominator',
     license='',
     description='Generate numerical phantoms.',
-    long_description='', #open('README.rst').read(),
+    long_description=open('README.rst').read(),
     install_requires=[
         "numpy>=1.16.2",
     ],
