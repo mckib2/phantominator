@@ -2,29 +2,46 @@
 
 import numpy as np
 
-def shepp_logan(N, orig_vals=False):
+def shepp_logan(N, modified=False, E=None, ret_E=False):
     '''Generate a Shepp-Logan phantom of size (N, N).
 
     Parameters
     ----------
     N : int
         Matrix size, (N, N).
-    orig_vals : bool, optional
+    modified : bool, optional
         Use original grey-scale values as given in [1]_.  Most
         implementations use modified values for better contrast (for
-        example, see [3]_ and [4]_)
+        example, see [3]_ and [4]_).
+    E : array_like
+        ex6 numeric matrix defining e ellipses.  The six columns of
+        E are:
+
+            - Additive intensity value of the ellipse
+            - Length of the horizontal semiaxis of the ellipse
+            - Length of the vertical semiaxis of the ellipse
+            - x-coordinate of the center of the ellipse (in [-1, 1])
+            - y-coordinate of the center of the ellipse (in [-1, 1])
+            - Angle between the horizontal semiaxis of the ellipse
+              and the x-axis of the image (in rad)
+
+    ret_E : bool, optional
+        Return the matrix E used to generate the phantom, ph.
 
     Returns
     -------
     ph : array_like
         The Shepp-Logan phantom.
+    E : array_like, optional
+        The ellipse parameters used to generate ph.
 
     Notes
     -----
     This much abused phantom is due to [1]_.  The tabulated values in
     the paper are reproduced in the Wikipedia entry [2]_.  The
     original values do not produce great contrast, so modified values
-    are used by default.
+    are used by default (see Table B.1 in [5]_ or implementations
+    [3]_ and [4]_).
 
     References
     ----------
@@ -36,41 +53,24 @@ def shepp_logan(N, orig_vals=False):
            sim.html#shepp_logan
     .. [4] http://www.mathworks.com/matlabcentral/fileexchange/
            9416-3d-shepp-logan-phantom
+    .. [5] Toft, Peter Aundal, and John Aasted Sørensen. "The Radon
+           transform-theory and implementation." (1996).
     '''
 
-    # Centers of ellipses
-    ctrs = [
-        (0, 0),
-        (0, -0.0184),
-        (0.22, 0),
-        (-0.22, 0),
-        (0, 0.35),
-        (0, 0.1),
-        (0, -0.1),
-        (-0.08, -0.605),
-        (0, -0.605),
-        (0.06, -0.605)]
+    # Get the ellipse parameters the user asked for
+    if E is None:
+        if modified:
+            E = modified_shepp_logan_params()
+        else:
+            E = shepp_logan_params()
 
-    # Major-axes
-    major = [
-        0.69, 0.6624, 0.11, 0.16, 0.21, 0.046, 0.046, 0.046, 0.023,
-        0.023]
-
-    # Minor-axes
-    minor = [
-        0.92, 0.874, 0.31, 0.41, 0.25, 0.046, 0.046, 0.023, 0.023,
-        0.023]
-
-    # Angle of rotation (in deg)
-    theta = np.deg2rad([0, 0, -18, 18, 0, 0, 0, 0, 0, 0])
-
-    # Grey level
-    if orig_vals:
-        grey = [
-            2, -.98, -.02, -.02, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
-    else:
-        # Better contrast:
-        grey = [1, -0.8, -0.2, -0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    # Extract params
+    grey = E[:, 0]
+    major = E[:, 1]
+    minor = E[:, 2]
+    xs = E[:, 3]
+    ys = E[:, 4]
+    theta = E[:, 5]
 
     # 2x2 square => FOV = (-1, 1)
     xx = np.linspace(-1, 1, N)
@@ -79,8 +79,8 @@ def shepp_logan(N, orig_vals=False):
     ct = np.cos(theta)
     st = np.sin(theta)
 
-    for ii, ctr in enumerate(ctrs):
-        xc, yc = ctr
+    for ii in range(E.shape[0]):
+        xc, yc = xs[ii], ys[ii]
         a, b = major[ii], minor[ii]
         ct0, st0 = ct[ii], st[ii]
 
@@ -92,7 +92,40 @@ def shepp_logan(N, orig_vals=False):
         # Sum of ellipses
         ph[idx] += grey[ii]
 
+    if ret_E:
+        return(ph, E)
     return ph
+
+def shepp_logan_params():
+    '''Return parameters for original Shepp-Logan phantom.
+
+    Returns
+    -------
+    E : array_like, shape (10, 6)
+        Parameters for the 10 ellipses used to construct the phantom.
+    '''
+
+    E = np.zeros((10, 6)) # (10, [A, a, b, xc, yc, theta])
+    E[:, 0] = [2, -.98, -.02, -.02, .01, .01, .01, .01, .01, .01]
+    E[:, 1] = [
+        .69, .6624, .11, .16, .21, .046, .046, .046, .023, .023]
+    E[:, 2] = [.92, .874, .31, .41, .25, .046, .046, .023, .023, .023]
+    E[:, 3] = [0, 0, .22, -.22, 0, 0, 0, -.08, 0, .06]
+    E[:, 4] = [0, -.0184, 0, 0, .35, .1, -.1, -.605, -.605, -.605]
+    E[:, 5] = np.deg2rad([0, 0, -18, 18, 0, 0, 0, 0, 0, 0])
+    return E
+
+def modified_shepp_logan_params():
+    '''Return parameters for  modified Shepp-Logan phantom.
+
+    Returns
+    -------
+    E : array_like, shape (10, 6)
+        Parameters for the 10 ellipses used to construct the phantom.
+    '''
+    E = shepp_logan_params()
+    E[:, 0] = [1, -0.8, -0.2, -0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    return E
 
 if __name__ == '__main__':
     pass
