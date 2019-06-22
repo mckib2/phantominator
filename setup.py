@@ -11,7 +11,7 @@ setup(
     packages=find_packages(),
     scripts=[],
     url='https://github.com/mckib2/phantominator',
-    license='',
+    license='GPLv3',
     description='Generate numerical phantoms.',
     long_description=open('README.rst').read(),
     install_requires=[
