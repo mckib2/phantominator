@@ -5,7 +5,7 @@ from setuptools import find_packages
 
 setup(
     name='phantominator',
-    version='0.0.6',
+    version='0.0.7',
     author='Nicholas McKibben',
     author_email='nicholas.bgp@gmail.com',
     packages=find_packages(),

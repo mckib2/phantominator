@@ -2,7 +2,7 @@
 
 import numpy as np
 
-def shepp_logan(N, modified=False, E=None, ret_E=False):
+def shepp_logan(N, modified=True, E=None, ret_E=False):
     '''Generate a Shepp-Logan phantom of size (N, N).
 
     Parameters
