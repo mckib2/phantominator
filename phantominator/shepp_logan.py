@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''The canonical Shepp-Logan phantom.'''
 
 import numpy as np

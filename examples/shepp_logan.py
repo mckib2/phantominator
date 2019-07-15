@@ -9,11 +9,11 @@ if __name__ == '__main__':
     ph = shepp_logan(128, modified=False)
     plt.subplot(1, 2, 1)
     plt.title('Shepp-Logan')
-    plt.imshow(ph, cmap='grey')
+    plt.imshow(ph, cmap='gray')
 
     # Modified Shepp-Logan for better contrast
     ph = shepp_logan(128, modified=True)
     plt.subplot(1, 2, 2)
     plt.title('Modified Shepp-Logan')
-    plt.imshow(ph, cmap='grey')
+    plt.imshow(ph, cmap='gray')
     plt.show()
