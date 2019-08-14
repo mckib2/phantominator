@@ -20,5 +20,12 @@ things that I don't want for this project.
 Usage
 =====
 
-See the `examples` module.  The interface is similar to MATLAB's
+Basic usage:
+
+.. code-block:: python
+
+    from phantominator import shepp_logan
+    ph = shepp_logan(128)
+
+Also see the `examples` module.  The interface is similar to MATLAB's
 `phantom` function.
