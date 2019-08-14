@@ -14,7 +14,7 @@ def shepp_logan(N, modified=True, E=None, ret_E=False):
         Use original grey-scale values as given in [1]_.  Most
         implementations use modified values for better contrast (for
         example, see [3]_ and [4]_).
-    E : array_like
+    E : array_like, optional
         ex6 numeric matrix defining e ellipses.  The six columns of
         E are:
 
