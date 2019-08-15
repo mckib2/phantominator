@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''Shepp-Logan phantom for use with MR simulations.'''
 
 import numpy as np
@@ -7,8 +8,8 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False):
 
     Parameters
     ----------
-    N : int
-        Matrix size, (N, N, N).
+    N : int or array_like
+        Matrix size, (N, N, N), or (L, M, N).
     E : array_like, optional
         ex13 numeric matrix defining e ellipses.  The columns of E
         are:
@@ -26,6 +27,9 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False):
             - Explicit T1 value (in sec, or np.nan if model is used)
             - T2 value (in sec)
             - chi (change in magnetic susceptibility)
+
+        If spin density is negative, M0, T1, and T2 will be subtracted
+        instead of cummulatively added.
     B0 : float, optimal
         Field strength (in Tesla).
     T2star : bool, optional
@@ -60,7 +64,13 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False):
            2008.
     '''
 
-    # Get parameters from paper if none provided
+    # Determine size of phantom
+    if np.isscalar(N):
+        L, M, N = N, N, N
+    else:
+        L, M, N = N[:]
+
+    # Get parameters from paper if None provided
     if E is None:
         E = _ellipsoid_parameters()
 
@@ -80,13 +90,16 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False):
     chis = E[:, 12]
 
     # Initialize array
-    xx = np.linspace(-1, 1, N)
-    X, Y, Z = np.meshgrid(xx, xx, xx)
+    X, Y, Z = np.meshgrid( # meshgrid does X, Y backwards
+        np.linspace(-1, 1, M),
+        np.linspace(-1, 1, L),
+        np.linspace(-1, 1, N))
     ct = np.cos(theta)
     st = np.sin(theta)
-    T1s = np.zeros((N, N, N))
-    T2s = np.zeros((N, N, N))
-    M0s = np.zeros((N, N, N))
+    sgn = np.sign(M0)
+    T1s = np.zeros((L, M, N))
+    T2s = np.zeros((L, M, N))
+    M0s = np.zeros((L, M, N))
 
     # We'll need the gyromagnetic ratio if returning T2star values
     if T2star:
@@ -106,20 +119,21 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False):
             ((X - xc)*st0 - (Y - yc)*ct0)**2/b**2 +
             (Z - zc)**2/c**2 <= 1)
 
-        # Add ellipses together
+        # Add ellipses together -- subtract of M0 is negative
         M0s[idx] += M0[ii]
 
         # Use T2star values if user asked for them
         if T2star:
-            T2s[idx] += 1/(1/T2[ii] + gamma0*np.abs(B0*chis[ii]))
+            T2s[idx] += sgn[ii]/(1/T2[ii] + gamma0*np.abs(
+                B0*chis[ii]))
         else:
-            T2s[idx] += T2[ii]
+            T2s[idx] += sgn[ii]*T2[ii]
 
         # Use T1 model if not given explicit T1 value
         if np.isnan(T1[ii]):
-            T1s[idx] += As[ii]*(B0**Cs[ii])
+            T1s[idx] += sgn[ii]*As[ii]*(B0**Cs[ii])
         else:
-            T1s[idx] += T1[ii]
+            T1s[idx] += sgn[ii]*T1[ii]
 
     return(M0s, T1s, T2s)
 
@@ -183,6 +197,30 @@ def _ellipsoid_parameters():
         *params['blood-clot']]
 
     # Need to subtract some ellipses here...
+    Eneg = np.zeros(E.shape)
+    for ii in range(E.shape[0]):
+
+        # Ellipsoid geometry
+        Eneg[ii, :7] = E[ii, :7]
+
+        # Tissue property differs after 4th subtracted ellipsoid
+        if ii > 3:
+            Eneg[ii, 7:] = E[3, 7:]
+        else:
+            Eneg[ii, 7:] = E[ii-1, 7:]
+
+    # Throw out first as we skip this one in the paper's table
+    Eneg = Eneg[1:, :]
+
+    # Spin density is negative for subtraction
+    Eneg[:, 7] *= -1
+
+    # Paper doesn't use last blood-clot ellipsoid
+    E = E[:-1, :]
+    Eneg = Eneg[:-1, :]
+
+    # Put both ellipsoid groups together
+    E = np.concatenate((E, Eneg), axis=0)
 
     return E
 

@@ -17,3 +17,9 @@ if __name__ == '__main__':
     plt.title('Modified Shepp-Logan')
     plt.imshow(ph, cmap='gray')
     plt.show()
+
+    # Generate phantoms with different sizes
+    ph = shepp_logan((128, 256))
+    plt.title('Strange sizes')
+    plt.imshow(ph, cmap='gray')
+    plt.show()
