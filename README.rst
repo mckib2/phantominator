@@ -17,6 +17,8 @@ are other implementations of Shepp-Logan available from other
 projects, but they are usually not as easy to install or include other
 things that I don't want for this project.
 
+This package offers both CT and MR versions.
+
 Usage
 =====
 
@@ -24,8 +26,12 @@ Basic usage:
 
 .. code-block:: python
 
+    # CT phantom
     from phantominator import shepp_logan
     ph = shepp_logan(128)
 
-Also see the `examples` module.  The interface is similar to MATLAB's
-`phantom` function.
+    # MR phantom (returns proton density, T1, and T2 maps)
+    M0, T1, T2 = shepp_logan((128, 128, 20), MR=True)
+
+Also see the `examples` module and docstrings.  The interface for CT
+phantom generation is similar to MATLAB's `phantom` function.
