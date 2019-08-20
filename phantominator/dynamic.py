@@ -30,9 +30,15 @@ def dynamic(N, nt):
     idx = np.logical_and(idx0, idx1)
     ph[idx, :] = 1
 
+    # Make another outer circle
+    idx0 = X**2 + Y**2 <= (1 - thickness)**2
+    idx1 = X**2 + Y**2 >= (1 - 2*thickness)**2
+    idx = np.logical_and(idx0, idx1)
+    ph[idx, :] = .2
+
     # Make inner circle
-    r = np.cos(np.arange(nt)*2*np.pi/nt) + 1.5
-    r = r/np.max(r)*.6
+    r = np.cos(np.arange(nt)*2*np.pi/nt) + 2
+    r = r/np.max(r)*.4
     thickness = .15
     for ii in range(nt):
         idx0 = X**2 + Y**2 <= r[ii]**2
