@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     # Some code to look at the animation
     fig = plt.figure()
-    ax = plt.imshow(ph[..., 0])
+    ax = plt.imshow(ph[..., 0], cmap='gray')
 
     def init():
         '''Initialize ax data.'''
