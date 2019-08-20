@@ -33,5 +33,9 @@ Basic usage:
     # MR phantom (returns proton density, T1, and T2 maps)
     M0, T1, T2 = shepp_logan((128, 128, 20), MR=True)
 
+    # Dynamic (concentric circles), 20 time frames
+    from phantominator import dynamic
+    ph = dynamic(128, 20)
+
 Also see the `examples` module and docstrings.  The interface for CT
 phantom generation is similar to MATLAB's `phantom` function.
