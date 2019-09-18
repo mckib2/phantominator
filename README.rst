@@ -45,7 +45,8 @@ Shepp-Logan phantom:
 
 .. code-block:: python
 
-    # Given coordinates (kx, ky), where kx and ky are 1D arrays,
+    # Given k-space coordinates (kx, ky), where kx and ky are 1D
+    # arrays using the same unit conventions as BART's traj command,
     # we can find the corresponding k-space measurements:
     from phantominator import kspace_shepp_logan
     k = kspace_shepp_logan(kx, ky)
