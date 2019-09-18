@@ -82,25 +82,26 @@ def _a(A, B, theta, alpha):
         A**2*np.cos(theta - alpha)**2 + B**2*np.sin(theta - alpha)**2)
 
 if __name__ == '__main__':
+    pass
 
-    # Example usage
-    from phantominator.traj import radial
-    sx, spokes = 128, 128
-    kx, ky = radial(sx, spokes)
-
-    from bart import bart # pylint: disable=E0401
-    traj = np.concatenate((
-        kx.reshape((1, sx, spokes)),
-        ky.reshape((1, sx, spokes)),
-        np.zeros((1, sx, spokes))), axis=0)
-    nufft = lambda x0: bart(
-        1, 'nufft -i -t -d %d:%d:1' % (sx, sx),
-        traj, x0.reshape((1, sx, spokes, 1))).squeeze()
-
-    k = kspace_shepp_logan(kx, ky)
-
-    import matplotlib.pyplot as plt
-    # plt.scatter(kx, ky, 1)
+    # # Example usage
+    # from phantominator.traj import radial
+    # sx, spokes = 128, 128
+    # kx, ky = radial(sx, spokes)
+    #
+    # from bart import bart # pylint: disable=E0401
+    # traj = np.concatenate((
+    #     kx.reshape((1, sx, spokes)),
+    #     ky.reshape((1, sx, spokes)),
+    #     np.zeros((1, sx, spokes))), axis=0)
+    # nufft = lambda x0: bart(
+    #     1, 'nufft -i -t -d %d:%d:1' % (sx, sx),
+    #     traj, x0.reshape((1, sx, spokes, 1))).squeeze()
+    #
+    # k = kspace_shepp_logan(kx, ky)
+    #
+    # import matplotlib.pyplot as plt
+    # # plt.scatter(kx, ky, 1)
+    # # plt.show()
+    # plt.imshow(np.abs(nufft(k)))
     # plt.show()
-    plt.imshow(np.abs(nufft(k)))
-    plt.show()
