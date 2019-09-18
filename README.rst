@@ -22,6 +22,9 @@ This package offers both CT and MR versions.
 Usage
 =====
 
+Also see the `examples` module and docstrings.  The interface for CT
+phantom generation is similar to MATLAB's `phantom` function.
+
 Basic usage:
 
 .. code-block:: python
@@ -37,5 +40,12 @@ Basic usage:
     from phantominator import dynamic
     ph = dynamic(128, 20)
 
-Also see the `examples` module and docstrings.  The interface for CT
-phantom generation is similar to MATLAB's `phantom` function.
+Arbitrary k-space sampling is supported for the single coil 2D
+Shepp-Logan phantom:
+
+.. code-block:: python
+
+    # Given coordinates (kx, ky), where kx and ky are 1D arrays,
+    # we can find the corresponding k-space measurements:
+    from phantominator import kspace_shepp_logan
+    k = kspace_shepp_logan(kx, ky)
