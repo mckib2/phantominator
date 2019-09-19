@@ -157,44 +157,20 @@ def MRDataEllipseSinusoidal(kx, ky, Dmat, Rmat, xc, yc, coeffs):
     return 2*np.pi*np.linalg.det(Dmat)*coeffs @ (
         np.exp(2*np.pi*1j*(xc*kx + yc*ky))*Gval)
 
-
-
-from scipy.interpolate import griddata
-
-def gridder(
-        kx, ky, k, sx, sy, coil_axis=-1, ifft=True, os=2,
-        method='linear'):
-    # Move coil data to the back
-    k = np.moveaxis(k, coil_axis, -1)
-
-    yy, xx = np.meshgrid(
-        np.linspace(np.min(kx), np.max(kx), sx*os),
-        np.linspace(np.min(ky), np.max(ky), sy*os))
-    grid_kspace = griddata((kx, ky), k, (xx, yy), method=method)
-
-    if ifft:
-        padx = int(sx*(os - 1)/2)
-        pady = int(sy*(os - 1)/2)
-        return np.fft.fftshift(np.fft.ifft2(
-            np.fft.ifftshift(np.nan_to_num(grid_kspace), axes=(0, 1)),
-            axes=(0, 1)), axes=(0, 1))[padx:-padx, pady:-pady, :]
-    return grid_kspace
-
-
 if __name__ == '__main__':
-    # pass
-
-    # Example usage
-    from phantominator.traj import radial
-    sx, spokes, ncoil = 128, 128, 8
-    kx, ky = radial(sx, spokes)
-    k = kspace_shepp_logan(kx, ky, ncoil=ncoil)
-
-    import matplotlib.pyplot as plt
-    sos = lambda x0: np.sqrt(np.sum(np.abs(x0)**2, axis=-1))
-    coil_ims = gridder(kx, ky, k, sx, sx)
-    plt.imshow(sos(coil_ims))
-    # for ii in range(ncoil):
-    #     plt.subplot(1, ncoil, ii+1)
-    #     plt.imshow(sos(coil_ims[..., ii][..., None]))
-    plt.show()
+    pass
+    #
+    # # Example usage
+    # from phantominator.traj import radial
+    # sx, spokes, ncoil = 128, 128, 8
+    # kx, ky = radial(sx, spokes)
+    # k = kspace_shepp_logan(kx, ky, ncoil=ncoil)
+    #
+    # import matplotlib.pyplot as plt
+    # sos = lambda x0: np.sqrt(np.sum(np.abs(x0)**2, axis=-1))
+    # coil_ims = gridder(kx, ky, k, sx, sx)
+    # plt.imshow(sos(coil_ims))
+    # # for ii in range(ncoil):
+    # #     plt.subplot(1, ncoil, ii+1)
+    # #     plt.imshow(sos(coil_ims[..., ii][..., None]))
+    # plt.show()
