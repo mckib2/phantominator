@@ -2,11 +2,11 @@
 
 import numpy as np
 
-def sens_info():
+def _sens_info():
     '''Gives back max coil number of coefficient number.'''
     return (8, 36)
 
-def sens_coeffs(coil): # pylint: disable=R0911
+def _sens_coeffs(coil): # pylint: disable=R0911
     '''Get coefficients for a specified coil.
 
     Notes

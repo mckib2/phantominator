@@ -7,7 +7,7 @@ from scipy.special import j1 # pylint: disable=E0611
 
 from phantominator.ct_shepp_logan import (
     _shepp_logan_params_2d, _modified_shepp_logan_params_2d)
-from utils import sens_coeffs, sens_info
+from phantominator.sens_coeffs import _sens_coeffs, _sens_info
 
 def kspace_shepp_logan(kx, ky, modified=True, E=None, ncoil=None):
     '''2D Shepp-Logan phantom kspace measurements at points (kx, ky).
@@ -56,7 +56,7 @@ def kspace_shepp_logan(kx, ky, modified=True, E=None, ncoil=None):
 
     # We want sensitivity maps!
     if ncoil is not None:
-        MAX_COIL, NUM_COEFF = sens_info()
+        MAX_COIL, NUM_COEFF = _sens_info()
         assert ncoil <= MAX_COIL, (
             'Only %d coils possible to simulate!' % MAX_COIL)
         t0 = time()
@@ -65,7 +65,7 @@ def kspace_shepp_logan(kx, ky, modified=True, E=None, ncoil=None):
         # each ellipse for coefficiency
         coeffs = np.zeros((ncoil, NUM_COEFF), dtype='complex')
         for cc in range(ncoil):
-            coeffs[cc, :] = sens_coeffs(cc)
+            coeffs[cc, :] = _sens_coeffs(cc)
 
         # Add up all the ellipse kspaces with all coils
         val = np.zeros((kx.size, ncoil), dtype='complex')
@@ -159,7 +159,6 @@ def MRDataEllipseSinusoidal(kx, ky, Dmat, Rmat, xc, yc, coeffs):
 
 if __name__ == '__main__':
     pass
-    #
     # # Example usage
     # from phantominator.traj import radial
     # sx, spokes, ncoil = 128, 128, 8
