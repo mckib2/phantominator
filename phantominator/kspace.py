@@ -1,17 +1,18 @@
 '''Analytical form of Shepp-Logan kspace.'''
 
 from time import time
+from math import tau
 
 import numpy as np
 from scipy.special import j1 # pylint: disable=E0611
-from math import tau
 
 from phantominator.ct_shepp_logan import (
     _shepp_logan_params_2d, _modified_shepp_logan_params_2d)
 from phantominator.sens_coeffs import _sens_coeffs, _sens_info
 
 
-def kspace_shepp_logan(kx, ky=None, modified=True, E=None, ncoil=None):
+def kspace_shepp_logan(
+        kx, ky=None, modified=True, E=None, ncoil=None):
     '''2D Shepp-Logan phantom kspace measurements at points (kx, ky).
 
     Parameters
@@ -19,7 +20,8 @@ def kspace_shepp_logan(kx, ky=None, modified=True, E=None, ncoil=None):
     kx, ky : array_like
         1D arrays corresponding to kspace coordinates.  Coordinate
         units are the same as those returned by BART's traj function.
-        Alternatively, kx should be a complex-valued array instead of separate ky.
+        Alternatively, kx should be a complex-valued array instead of
+        separate ky.
     modified : bool, optional
         Use original grey-scale values as given or use modified
         values for better contrast.
@@ -44,7 +46,8 @@ def kspace_shepp_logan(kx, ky=None, modified=True, E=None, ncoil=None):
         k = np.asarray(kx)
     else:
         kx, ky = np.asarray(kx), np.asarray(ky)
-        assert kx.shape == ky.shape, 'kx and ky must be the same size!'
+        assert kx.shape == ky.shape, (
+            'kx and ky must be the same size!')
         k = kx + 1j * ky
 
     # Get the ellipse parameters the user asked for
@@ -56,9 +59,6 @@ def kspace_shepp_logan(kx, ky=None, modified=True, E=None, ncoil=None):
 
     # We want sensitivity maps!
     if ncoil is not None:
-        # FIXME: This is not working because of incomplete changes in
-        # how k and ellipse are passed to other functions.
-
         # Extract params and get dims right to vectorize everything
         grey = E[:, 0]
         major = E[:, 1]
@@ -68,7 +68,8 @@ def kspace_shepp_logan(kx, ky=None, modified=True, E=None, ncoil=None):
         alphas = E[:, 5]
 
         MAX_COIL, NUM_COEFF = _sens_info()
-        assert ncoil <= MAX_COIL, f'Only {MAX_COIL} coils possible to simulate!'
+        assert ncoil <= MAX_COIL, (
+            f'Only {MAX_COIL} coils possible to simulate!')
         t0 = time()
 
         # Build up the coefficient matrix, we'll do all coils for
@@ -78,7 +79,7 @@ def kspace_shepp_logan(kx, ky=None, modified=True, E=None, ncoil=None):
             coeffs[cc, :] = _sens_coeffs(cc)
 
         # Add up all the ellipse kspaces with all coils
-        val = np.zeros((*k.shape, ncoil), dtype=np.complex)
+        val = np.zeros((k.size, ncoil), dtype=np.complex)
         for ii in range(E.shape[0]):
             # Have to get screwy with the center coordinates to make
             # it work.  Not sure what's different between us and
@@ -111,7 +112,7 @@ def _kspace_ellipse(k, E):
     rho, A, B, xc, yc, alpha = np.asarray(E).T
     E = rho * A * B
     Ec = xc + 1j * yc
-    ret = np.empty(shape = np.shape(k) + np.shape(E), dtype=np.complex)
+    ret = np.empty(shape=np.shape(k) + np.shape(E), dtype=np.complex)
     zero = np.isclose(k, 0)
     ret[zero] = .5 * tau * E  # lim a->0: j1(tau * a) / a = .5 * tau
     k = k[~zero, None]
@@ -172,18 +173,30 @@ def MRDataEllipseSinusoidal(k, Dmat, Rmat, xc, yc, coeffs):
         np.exp(1j*tau*(xc*kx + yc*ky))*Gval)
 
 if __name__ == '__main__':
-    pass
-    # # Example usage
-    # from phantominator.traj import radial
-    # sx, spokes, ncoil = 128, 128, 8
-    # kx, ky = radial(sx, spokes)
-    # k = kspace_shepp_logan(kx, ky, ncoil=ncoil)
-    #
-    # import matplotlib.pyplot as plt
-    # sos = lambda x0: np.sqrt(np.sum(np.abs(x0)**2, axis=-1))
-    # coil_ims = gridder(kx, ky, k, sx, sx)
+    # Example usage (requires pygrappa package to be installed!)
+    from phantominator.traj import radial
+    from scipy.cluster.vq import whiten # pylint: disable=C0412
+    import matplotlib.pyplot as plt
+    from pygrappa import radialgrappaop, grog # pylint: disable=E0611
+
+    sx, spokes, ncoil = 288, 72, 8
+    kx, ky = radial(sx, spokes)
+    kx = np.reshape(kx, (sx, spokes), 'F').flatten()
+    ky = np.reshape(ky, (sx, spokes), 'F').flatten()
+    k = kspace_shepp_logan(kx, ky, ncoil=ncoil)
+    k = whiten(k)
+
+    # Grid and check out the results:
+    Gx, Gy = radialgrappaop(
+        np.reshape(kx, (sx, spokes)),
+        np.reshape(ky, (sx, spokes)),
+        np.reshape(k, (sx, spokes, ncoil)))
+    coil_ims = np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(
+        grog(kx, ky, k, sx, sx, Gx, Gy),
+        axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
+    sos = lambda x0: np.sqrt(np.sum(np.abs(x0)**2, axis=-1))
     # plt.imshow(sos(coil_ims))
-    # # for ii in range(ncoil):
-    # #     plt.subplot(1, ncoil, ii+1)
-    # #     plt.imshow(sos(coil_ims[..., ii][..., None]))
-    # plt.show()
+    for ii in range(ncoil):
+        plt.subplot(1, ncoil, ii+1)
+        plt.imshow(sos(coil_ims[..., ii][..., None]))
+    plt.show()
