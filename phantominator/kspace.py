@@ -173,30 +173,31 @@ def MRDataEllipseSinusoidal(k, Dmat, Rmat, xc, yc, coeffs):
         np.exp(1j*tau*(xc*kx + yc*ky))*Gval)
 
 if __name__ == '__main__':
-    # Example usage (requires pygrappa package to be installed!)
-    from phantominator.traj import radial
-    from scipy.cluster.vq import whiten # pylint: disable=C0412
-    import matplotlib.pyplot as plt
-    from pygrappa import radialgrappaop, grog # pylint: disable=E0611
-
-    sx, spokes, ncoil = 288, 72, 8
-    kx, ky = radial(sx, spokes)
-    kx = np.reshape(kx, (sx, spokes), 'F').flatten()
-    ky = np.reshape(ky, (sx, spokes), 'F').flatten()
-    k = kspace_shepp_logan(kx, ky, ncoil=ncoil)
-    k = whiten(k)
-
-    # Grid and check out the results:
-    Gx, Gy = radialgrappaop(
-        np.reshape(kx, (sx, spokes)),
-        np.reshape(ky, (sx, spokes)),
-        np.reshape(k, (sx, spokes, ncoil)))
-    coil_ims = np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(
-        grog(kx, ky, k, sx, sx, Gx, Gy),
-        axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
-    sos = lambda x0: np.sqrt(np.sum(np.abs(x0)**2, axis=-1))
-    # plt.imshow(sos(coil_ims))
-    for ii in range(ncoil):
-        plt.subplot(1, ncoil, ii+1)
-        plt.imshow(sos(coil_ims[..., ii][..., None]))
-    plt.show()
+    pass
+    # # Example usage (requires pygrappa package to be installed!)
+    # from phantominator.traj import radial
+    # from scipy.cluster.vq import whiten # pylint: disable=C0412
+    # import matplotlib.pyplot as plt
+    # from pygrappa import radialgrappaop, grog # pylint: disable=E0611
+    #
+    # sx, spokes, ncoil = 288, 72, 8
+    # kx, ky = radial(sx, spokes)
+    # kx = np.reshape(kx, (sx, spokes), 'F').flatten()
+    # ky = np.reshape(ky, (sx, spokes), 'F').flatten()
+    # k = kspace_shepp_logan(kx, ky, ncoil=ncoil)
+    # k = whiten(k)
+    #
+    # # Grid and check out the results:
+    # Gx, Gy = radialgrappaop(
+    #     np.reshape(kx, (sx, spokes)),
+    #     np.reshape(ky, (sx, spokes)),
+    #     np.reshape(k, (sx, spokes, ncoil)))
+    # coil_ims = np.fft.fftshift(np.fft.ifft2(np.fft.ifftshift(
+    #     grog(kx, ky, k, sx, sx, Gx, Gy),
+    #     axes=(0, 1)), axes=(0, 1)), axes=(0, 1))
+    # sos = lambda x0: np.sqrt(np.sum(np.abs(x0)**2, axis=-1))
+    # # plt.imshow(sos(coil_ims))
+    # for ii in range(ncoil):
+    #     plt.subplot(1, ncoil, ii+1)
+    #     plt.imshow(sos(coil_ims[..., ii][..., None]))
+    # plt.show()
