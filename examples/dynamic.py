@@ -19,12 +19,12 @@ if __name__ == '__main__':
     def init():
         '''Initialize ax data.'''
         ax.set_array(ph[..., 0])
-        return ax,
+        return(ax,)
 
     def animate(frame):
         '''Update frame.'''
         ax.set_array(ph[..., frame])
-        return ax,
+        return(ax,)
 
     anim = FuncAnimation(
         fig, animate, init_func=init, frames=nt, interval=50,
