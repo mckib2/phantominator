@@ -4,12 +4,14 @@ from time import time
 
 import numpy as np
 from scipy.special import j1 # pylint: disable=E0611
+from math import tau
 
 from phantominator.ct_shepp_logan import (
     _shepp_logan_params_2d, _modified_shepp_logan_params_2d)
 from phantominator.sens_coeffs import _sens_coeffs, _sens_info
 
-def kspace_shepp_logan(kx, ky, modified=True, E=None, ncoil=None):
+
+def kspace_shepp_logan(kx, ky=None, modified=True, E=None, ncoil=None):
     '''2D Shepp-Logan phantom kspace measurements at points (kx, ky).
 
     Parameters
@@ -17,6 +19,7 @@ def kspace_shepp_logan(kx, ky, modified=True, E=None, ncoil=None):
     kx, ky : array_like
         1D arrays corresponding to kspace coordinates.  Coordinate
         units are the same as those returned by BART's traj function.
+        Alternatively, kx should be a complex-valued array instead of separate ky.
     modified : bool, optional
         Use original grey-scale values as given or use modified
         values for better contrast.
@@ -37,7 +40,12 @@ def kspace_shepp_logan(kx, ky, modified=True, E=None, ncoil=None):
            imaging 19.12 (2000): 1160-1167.
     '''
 
-    assert kx.size == ky.size, 'kx and ky must be the same size!'
+    if ky is None:
+        k = np.asarray(kx)
+    else:
+        kx, ky = np.asarray(kx), np.asarray(ky)
+        assert kx.shape == ky.shape, 'kx and ky must be the same size!'
+        k = kx + 1j * ky
 
     # Get the ellipse parameters the user asked for
     if E is None:
@@ -46,35 +54,37 @@ def kspace_shepp_logan(kx, ky, modified=True, E=None, ncoil=None):
         else:
             E = _shepp_logan_params_2d()
 
-    # Extract params and get dims right to vectorize everything
-    grey = E[:, 0]
-    major = E[:, 1]
-    minor = E[:, 2]
-    xs = E[:, 3]
-    ys = E[:, 4]
-    alphas = E[:, 5]
-
     # We want sensitivity maps!
     if ncoil is not None:
+        # FIXME: This is not working because of incomplete changes in
+        # how k and ellipse are passed to other functions.
+
+        # Extract params and get dims right to vectorize everything
+        grey = E[:, 0]
+        major = E[:, 1]
+        minor = E[:, 2]
+        xs = E[:, 3]
+        ys = E[:, 4]
+        alphas = E[:, 5]
+
         MAX_COIL, NUM_COEFF = _sens_info()
-        assert ncoil <= MAX_COIL, (
-            'Only %d coils possible to simulate!' % MAX_COIL)
+        assert ncoil <= MAX_COIL, f'Only {MAX_COIL} coils possible to simulate!'
         t0 = time()
 
         # Build up the coefficient matrix, we'll do all coils for
         # each ellipse for coefficiency
-        coeffs = np.zeros((ncoil, NUM_COEFF), dtype='complex')
+        coeffs = np.zeros((ncoil, NUM_COEFF), dtype=np.complex)
         for cc in range(ncoil):
             coeffs[cc, :] = _sens_coeffs(cc)
 
         # Add up all the ellipse kspaces with all coils
-        val = np.zeros((kx.size, ncoil), dtype='complex')
+        val = np.zeros((*k.shape, ncoil), dtype=np.complex)
         for ii in range(E.shape[0]):
             # Have to get screwy with the center coordinates to make
             # it work.  Not sure what's different between us and
             # MATLAB script...
             val += _kspace_ellipse_sens(
-                kx, ky, ys[ii]/2, -xs[ii]/2, grey[ii], major[ii],
+                k, ys[ii]/2, -xs[ii]/2, grey[ii], major[ii],
                 minor[ii], alphas[ii], coeffs).T
 
         print('Took %g seconds to simulate %d coils' % (
@@ -83,36 +93,41 @@ def kspace_shepp_logan(kx, ky, modified=True, E=None, ncoil=None):
 
     # Same for kspace coordinates.  Factor of 2 to match up with
     # BART's traj function
-    kx = kx[:, None]/2
-    ky = ky[:, None]/2
+    # FIXME: Scaling removed so that this matches Matlab mriphantom.
+    #        Which was is correct?
+    #k /= 2
 
     # Sum of ellipses
-    return np.sum(_kspace_ellipse(
-        kx, ky, xs, ys, grey[None, :], major[None, :],
-        minor[None, :], alphas[None, :]), axis=-1)
+    return np.sum(_kspace_ellipse(k, E), axis=-1)
 
-def _kspace_ellipse(kx, ky, xc, yc, rho, A, B, alpha):
-    '''Generates Fourier transform of a general ellipse.
+def _kspace_ellipse(k, E):
+    '''Generates Fourier transform of (an array of) a general ellipse.
 
     Notes
     -----
     Implements equation [21] in [1]_.
     '''
-
-    k = kx + 1j*ky
-    theta = np.angle(k)
-    k = np.abs(k)
-    t = np.sqrt(xc**2 + yc**2)
-    gamma = np.arctan2(yc, xc)
-    athetak = _a(A, B, theta, alpha)*k
-    return np.exp(-1j*2*np.pi*k*t*np.cos(gamma - theta))*rho*A*B*j1(
-        2*np.pi*athetak)/athetak
+    k = np.asarray(k)
+    rho, A, B, xc, yc, alpha = np.asarray(E).T
+    E = rho * A * B
+    Ec = xc + 1j * yc
+    ret = np.empty(shape = np.shape(k) + np.shape(E), dtype=np.complex)
+    zero = np.isclose(k, 0)
+    ret[zero] = .5 * tau * E  # lim a->0: j1(tau * a) / a = .5 * tau
+    k = k[~zero, None]
+    if k.size:
+        k, theta = abs(k), np.angle(k)
+        t, gamma = abs(Ec), np.angle(Ec)
+        athetak = _a(A, B, theta, alpha) * k
+        rotation = np.exp(-1j * tau * k * t * np.cos(gamma - theta))
+        ret[~zero] = rotation * E * j1(tau * athetak) / athetak
+    return ret
 
 def _a(A, B, theta, alpha):
     return np.sqrt(
         A**2*np.cos(theta - alpha)**2 + B**2*np.sin(theta - alpha)**2)
 
-def _kspace_ellipse_sens(kx, ky, xc, yc, rho, A, B, theta, coeffs):
+def _kspace_ellipse_sens(k, xc, yc, rho, A, B, theta, coeffs):
     '''Fourier transform of ellipse with polynomial sensitivity map.
     '''
 
@@ -121,15 +136,14 @@ def _kspace_ellipse_sens(kx, ky, xc, yc, rho, A, B, theta, coeffs):
     Rmat = np.array([[ct, -st], [st, ct]])
     Dmat = np.diag(width/2)
 
-    return rho*MRDataEllipseSinusoidal(
-        kx, ky, Dmat, Rmat, xc, yc, coeffs)
+    return rho*MRDataEllipseSinusoidal(k, Dmat, Rmat, xc, yc, coeffs)
 
-def MRDataEllipseSinusoidal(kx, ky, Dmat, Rmat, xc, yc, coeffs):
+def MRDataEllipseSinusoidal(k, Dmat, Rmat, xc, yc, coeffs):
     '''Sinusoidal model'''
     N = coeffs.shape[1]
     L = np.floor(np.sqrt(N))
 
-    k = np.concatenate((kx[None, :], ky[None, :]), axis=0)
+    k = np.concatenate((k.real[None, :], k.imag[None, :]), axis=0)
     Nk = k.shape[1]
 
     ky, kx = np.meshgrid(
@@ -142,7 +156,7 @@ def MRDataEllipseSinusoidal(kx, ky, Dmat, Rmat, xc, yc, coeffs):
     kxy = np.concatenate(
         (kx.flatten('C')[None, :], ky.flatten('C')[None, :]), axis=0)
 
-    wu = -2*np.pi*Dmat @ Rmat.conj().T @ kxy
+    wu = -tau * Dmat @ Rmat.conj().T @ kxy
     # wux = np.reshape(wu[0, :], (N, Nk), 'C')
     # wuy = np.reshape(wu[1, :], (N, Nk), 'C')
     # modw = np.sqrt(wux**2 + wuy**2)
@@ -154,8 +168,8 @@ def MRDataEllipseSinusoidal(kx, ky, Dmat, Rmat, xc, yc, coeffs):
     Gval[ind_big] = j1(modw[ind_big])/modw[ind_big]
     Gval[~ind_big] = .5*(1 - (modw[~ind_big]/2)**2/2)
 
-    return 2*np.pi*np.linalg.det(Dmat)*coeffs @ (
-        np.exp(2*np.pi*1j*(xc*kx + yc*ky))*Gval)
+    return tau*np.linalg.det(Dmat)*coeffs @ (
+        np.exp(1j*tau*(xc*kx + yc*ky))*Gval)
 
 if __name__ == '__main__':
     pass
