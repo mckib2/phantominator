@@ -20,8 +20,8 @@ def kspace_shepp_logan(
     kx, ky : array_like
         1D arrays corresponding to kspace coordinates.  Coordinate
         units are the same as those returned by BART's traj function.
-        Alternatively, kx should be a complex-valued array instead of
-        separate ky.
+        If ky=None, then kx should be a complex-valued array
+        corresponding to kx + 1j*ky.
     modified : bool, optional
         Use original grey-scale values as given or use modified
         values for better contrast.
@@ -48,7 +48,7 @@ def kspace_shepp_logan(
         kx, ky = np.asarray(kx), np.asarray(ky)
         assert kx.shape == ky.shape, (
             'kx and ky must be the same size!')
-        k = kx + 1j * ky
+        k = kx + 1j*ky
 
     # Get the ellipse parameters the user asked for
     if E is None:
@@ -73,7 +73,7 @@ def kspace_shepp_logan(
         t0 = time()
 
         # Build up the coefficient matrix, we'll do all coils for
-        # each ellipse for coefficiency
+        # each ellipse at the same time for efficiency
         coeffs = np.zeros((ncoil, NUM_COEFF), dtype=np.complex)
         for cc in range(ncoil):
             coeffs[cc, :] = _sens_coeffs(cc)
@@ -110,18 +110,18 @@ def _kspace_ellipse(k, E):
     '''
     k = np.asarray(k)
     rho, A, B, xc, yc, alpha = np.asarray(E).T
-    E = rho * A * B
-    Ec = xc + 1j * yc
+    E = rho*A*B
+    Ec = xc + 1j*yc
     ret = np.empty(shape=np.shape(k) + np.shape(E), dtype=np.complex)
     zero = np.isclose(k, 0)
-    ret[zero] = .5 * tau * E  # lim a->0: j1(tau * a) / a = .5 * tau
+    ret[zero] = .5*tau*E  # lim a->0: j1(tau * a) / a = .5 * tau
     k = k[~zero, None]
     if k.size:
         k, theta = abs(k), np.angle(k)
         t, gamma = abs(Ec), np.angle(Ec)
-        athetak = _a(A, B, theta, alpha) * k
-        rotation = np.exp(-1j * tau * k * t * np.cos(gamma - theta))
-        ret[~zero] = rotation * E * j1(tau * athetak) / athetak
+        athetak = _a(A, B, theta, alpha)*k
+        rotation = np.exp(-1j*tau*k*t*np.cos(gamma - theta))
+        ret[~zero] = rotation*E*j1(tau*athetak)/athetak
     return ret
 
 def _a(A, B, theta, alpha):
@@ -158,9 +158,6 @@ def MRDataEllipseSinusoidal(k, Dmat, Rmat, xc, yc, coeffs):
         (kx.flatten('C')[None, :], ky.flatten('C')[None, :]), axis=0)
 
     wu = -tau * Dmat @ Rmat.conj().T @ kxy
-    # wux = np.reshape(wu[0, :], (N, Nk), 'C')
-    # wuy = np.reshape(wu[1, :], (N, Nk), 'C')
-    # modw = np.sqrt(wux**2 + wuy**2)
     modw = np.abs(wu[0, :] + 1j*wu[1, :]).reshape((N, Nk))
 
     # The robust Bessel function
