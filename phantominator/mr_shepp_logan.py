@@ -3,7 +3,7 @@
 
 import numpy as np
 
-def mr_shepp_logan(N, E=None, B0=3, T2star=False):
+def mr_shepp_logan(N, E=None, B0=3, T2star=False, zlims=(-1, 1)):
     '''Shepp-Logan phantom with MR tissue parameters.
 
     Parameters
@@ -36,6 +36,9 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False):
         Use magnetic susceptibility values to return T2star values
         instead of T2. Gyromagnetic ratio is assumed to be that of
         hydrogen.
+    zlims : tuple, optional
+        Only for 3D.  Specify bounds along z.  Often we only want the
+        middle portion of a 3D phantom, e.g., zlim=(-.5, .5).
 
     Returns
     -------
@@ -70,6 +73,13 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False):
     else:
         L, M, N = N[:]
 
+    # Make sure zlims are appropriate
+    assert len(zlims) == 2, (
+        'zlims must be a tuple with 2 entries: upper and lower '
+        'bounds!')
+    assert zlims[0] <= zlims[1], (
+        'zlims: lower bound must be first entry!')
+
     # Get parameters from paper if None provided
     if E is None:
         E = _ellipsoid_parameters()
@@ -93,7 +103,7 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False):
     X, Y, Z = np.meshgrid( # meshgrid does X, Y backwards
         np.linspace(-1, 1, M),
         np.linspace(-1, 1, L),
-        np.linspace(-1, 1, N))
+        np.linspace(zlims[0], zlims[1], N))
     ct = np.cos(theta)
     st = np.sin(theta)
     sgn = np.sign(M0)
