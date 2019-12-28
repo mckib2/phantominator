@@ -5,6 +5,10 @@ Installation
 
     pip install phantominator
 
+The goal is to have easy installation and usage for everyone.  If
+something doesn't work, please open an issue and/or submit a pull
+request.  We'll get it figured out.
+
 About
 =====
 
