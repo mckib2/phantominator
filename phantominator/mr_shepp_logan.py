@@ -82,7 +82,7 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False, zlims=(-1, 1)):
 
     # Get parameters from paper if None provided
     if E is None:
-        E = _ellipsoid_parameters()
+        E = mr_ellipsoid_parameters()
 
     # Extract some parameters so we can use them
     xs = E[:, 0]
@@ -148,7 +148,7 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False, zlims=(-1, 1)):
     return(M0s, T1s, T2s)
 
 
-def _ellipsoid_parameters():
+def mr_ellipsoid_parameters():
     '''Returns parameters of ellipsoids.
 
     Returns

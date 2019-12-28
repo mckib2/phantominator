@@ -106,9 +106,9 @@ def ct_shepp_logan_2d(M, N, modified, E, ret_E):
     # Get the ellipse parameters the user asked for
     if E is None:
         if modified:
-            E = _modified_shepp_logan_params_2d()
+            E = ct_modified_shepp_logan_params_2d()
         else:
-            E = _shepp_logan_params_2d()
+            E = ct_shepp_logan_params_2d()
 
     # Extract params
     grey = E[:, 0]
@@ -156,9 +156,9 @@ def ct_shepp_logan_3d(L, M, N, modified, E, ret_E, zlims):
     # Get parameters from paper if None provided
     if E is None:
         if modified:
-            E = _modified_shepp_logan_params_3d()
+            E = ct_modified_shepp_logan_params_3d()
         else:
-            E = _shepp_logan_params_3d()
+            E = ct_shepp_logan_params_3d()
 
     # Extract some parameters so we can use them
     gray = E[:, 0]
@@ -199,7 +199,7 @@ def ct_shepp_logan_3d(L, M, N, modified, E, ret_E, zlims):
         return(ph, E)
     return ph
 
-def _shepp_logan_params_2d():
+def ct_shepp_logan_params_2d():
     '''Return parameters for original Shepp-Logan phantom.
 
     Returns
@@ -218,7 +218,7 @@ def _shepp_logan_params_2d():
     E[:, 5] = np.deg2rad([0, 0, -18, 18, 0, 0, 0, 0, 0, 0])
     return E
 
-def _modified_shepp_logan_params_2d():
+def ct_modified_shepp_logan_params_2d():
     '''Return parameters for modified Shepp-Logan phantom.
 
     Returns
@@ -226,11 +226,11 @@ def _modified_shepp_logan_params_2d():
     E : array_like, shape (10, 6)
         Parameters for the 10 ellipses used to construct the phantom.
     '''
-    E = _shepp_logan_params_2d()
+    E = ct_shepp_logan_params_2d()
     E[:, 0] = [1, -0.8, -0.2, -0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     return E
 
-def _shepp_logan_params_3d():
+def ct_shepp_logan_params_3d():
     '''Ellipsoid parameters for 3D Shepp-Logan.
 
     Returns
@@ -253,7 +253,7 @@ def _shepp_logan_params_3d():
     E[9, :] = [-.2, 0.056, 0.056, 0.1, 0, 0.1, 0.625, 0]
     return E
 
-def _modified_shepp_logan_params_3d():
+def ct_modified_shepp_logan_params_3d():
     '''Return parameters for modified Shepp-Logan phantom.
 
     Returns
@@ -261,7 +261,7 @@ def _modified_shepp_logan_params_3d():
     E : array_like, shape (10, 8)
         Parameters for the 10 ellipsoids used to construct phantom.
     '''
-    E = _shepp_logan_params_3d()
+    E = ct_shepp_logan_params_3d()
     E[:, 0] = [1, -0.8, -0.2, -0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     return E
 
