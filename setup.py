@@ -15,9 +15,10 @@ setup(
     description='Generate numerical phantoms.',
     long_description=open('README.rst').read(),
     install_requires=[
-        "numpy>=1.17.4",
-        "scipy>=1.3.3",
-        "matplotlib>=2.1.1"
+        "numpy>=1.18.0",
+        "scipy>=1.4.1",
+        "matplotlib>=3.1.2",
+        "ssfp>=0.3.0",
     ],
-    python_requires='>=2.7', # 2.7.15+, to be exact...
+    python_requires='>=3',
 )
