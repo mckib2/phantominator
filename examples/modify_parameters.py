@@ -24,4 +24,5 @@ if __name__ == '__main__':
     plt.imshow(M0)
     plt.title('Even-more-modified Shepp-Logan')
     plt.axis('off')
+    plt.colorbar()
     plt.show()
