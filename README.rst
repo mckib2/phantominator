@@ -19,6 +19,9 @@ things that I don't want for this project.
 
 This package offers both CT and MR versions.
 
+Going forward, this module will no longer support Python 2.  Please do
+the world a favor and move on to Python 3.
+
 Usage
 =====
 
@@ -36,9 +39,36 @@ Basic usage:
     # MR phantom (returns proton density, T1, and T2 maps)
     M0, T1, T2 = shepp_logan((128, 128, 20), MR=True)
 
+The Shepp-Logan 3D phantom has ellipsoids in [-1, 1] along the z-axis.
+The 2D Shepp-Logan exists at z=-0.25, so if we want just a subset
+along the z-axis with the first slice being the traditional 2D
+phantom, we can use the `zlims` option:
+
+.. code-block:: python
+
+    from phantominator import shepp_logan
+    M0, T1, T2 = shepp_logan((64, 64, 5), MR=True, zlims=(-.25, .25))
+
+We can also generate simple oscillating concentric circles:
+
+.. code-block:: python
+
     # Dynamic (concentric circles), 20 time frames
     from phantominator import dynamic
     ph = dynamic(128, 20)
+
+If we want to modify ellipse/ellipsoid parameters or we just want to
+see what they are.  For example, we can the MR ellipoid parameters
+like this:
+
+.. code-block:: python
+
+    from phantominator import mr_ellipsoid_parameters
+    E = mr_ellipsoid_parameters()
+
+See docstrings for `ct_shepp_logan`, and `mr_shepp_logan` for how
+the array `E` is structured.  It follows conventions from MATLAB's
+phantom function.
 
 Arbitrary k-space sampling is supported for the single coil 2D
 Shepp-Logan phantom:
