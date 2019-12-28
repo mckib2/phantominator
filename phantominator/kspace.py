@@ -6,8 +6,8 @@ from math import tau
 import numpy as np
 from scipy.special import j1 # pylint: disable=E0611
 
-from phantominator.ct_shepp_logan import (
-    _shepp_logan_params_2d, _modified_shepp_logan_params_2d)
+from phantominator import (
+    ct_shepp_logan_params_2d, ct_modified_shepp_logan_params_2d)
 from phantominator.sens_coeffs import _sens_coeffs, _sens_info
 
 
@@ -53,9 +53,9 @@ def kspace_shepp_logan(
     # Get the ellipse parameters the user asked for
     if E is None:
         if modified:
-            E = _modified_shepp_logan_params_2d()
+            E = ct_modified_shepp_logan_params_2d()
         else:
-            E = _shepp_logan_params_2d()
+            E = ct_shepp_logan_params_2d()
 
     # We want sensitivity maps!
     if ncoil is not None:
