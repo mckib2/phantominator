@@ -62,8 +62,8 @@ We can also generate simple oscillating concentric circles:
     ph = dynamic(128, 20)
 
 If we want to modify ellipse/ellipsoid parameters or we just want to
-see what they are.  For example, we can the MR ellipoid parameters
-like this:
+see what they are.  For example, we can get the MR ellipsoid
+parameters like this:
 
 .. code-block:: python
 
