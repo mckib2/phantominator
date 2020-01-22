@@ -142,7 +142,7 @@ def _kspace_ellipse_sens(k, xc, yc, rho, A, B, theta, coeffs):
 def MRDataEllipseSinusoidal(k, Dmat, Rmat, xc, yc, coeffs):
     '''Sinusoidal model'''
     N = coeffs.shape[1]
-    L = np.floor(np.sqrt(N))
+    L = int(np.floor(np.sqrt(N)))
 
     k = np.concatenate((k.real[None, :], k.imag[None, :]), axis=0)
     Nk = k.shape[1]
