@@ -1,9 +1,12 @@
 '''Analytical form of Shepp-Logan kspace.'''
 
 from time import time
-from math import tau
-
 import numpy as np
+try:
+    from math import tau
+except:
+    tau = 2*np.pi
+
 from scipy.special import j1 # pylint: disable=E0611
 
 from phantominator import (
