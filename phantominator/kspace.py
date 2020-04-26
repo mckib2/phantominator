@@ -69,7 +69,7 @@ def kspace_shepp_logan(
 
         MAX_COIL, NUM_COEFF = _sens_info()
         assert ncoil <= MAX_COIL, (
-            f'Only {MAX_COIL} coils possible to simulate!')
+            'Only %d coils possible to simulate!' % MAX_COIL)
         t0 = time()
 
         # Build up the coefficient matrix, we'll do all coils for
