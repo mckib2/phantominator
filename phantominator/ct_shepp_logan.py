@@ -19,6 +19,7 @@ def ct_shepp_logan(
         For 2D: ex6 numeric matrix defining e ellipses.  The six
         columns of E are:
 
+            - Gray value of the ellipse (in [0, 1])
             - Length of the horizontal semiaxis of the ellipse
             - Length of the vertical semiaxis of the ellipse
             - x-coordinate of the center of the ellipse (in [-1, 1])
