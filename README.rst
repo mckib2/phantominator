@@ -3,11 +3,14 @@ Installation
 
 .. code-block:: bash
 
-    pip install phantominator
+    python -m pip install phantominator
 
 The goal is to have easy installation and usage for everyone.  If
 something doesn't work, please open an issue and/or submit a pull
 request.  We'll get it figured out.
+
+`pygrappa` is an optional dependency required to run the
+`phantominator.examples.radial_coil_sens` example.
 
 About
 =====
@@ -15,7 +18,7 @@ About
 Python package for easy generation of numerical phantoms.  I often
 need a simple image to try something out on.  In MATLAB, I would use
 the `phantom` command to quickly get something to work with.  In
-Python, it's not quite so easy, so I made this package that's quick
+Python, it's not always quite so easy, so I made this package that's quick
 to install and use so there's as little friction as possible.  There
 are other implementations of Shepp-Logan available from other
 projects, but they are usually not as easy to install or include other
@@ -23,14 +26,20 @@ things that I don't want for this project.
 
 This package offers both CT and MR versions.
 
-Going forward, this module will no longer support Python 2.  Please do
-the world a favor and move on to Python 3.
+Going forward, this module will support Python >= 3.8.
 
 Usage
 =====
 
 Also see the `examples` module and docstrings.  The interface for CT
 phantom generation is similar to MATLAB's `phantom` function.
+
+Examples can be run as:
+
+.. code-block:: bash
+
+    # python -m phantominator.examples.[example-name], e.g.:
+    python -m phantominator.examples.shepp_logan
 
 Basic usage:
 

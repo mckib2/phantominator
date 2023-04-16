@@ -1,9 +1,10 @@
-'''Example demonstrating how to modify parameters.'''
+"""Example demonstrating how to modify parameters."""
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 from phantominator import shepp_logan, mr_ellipsoid_parameters
+
 
 if __name__ == '__main__':
 
@@ -11,7 +12,7 @@ if __name__ == '__main__':
     E = mr_ellipsoid_parameters()
 
     # 8th column is spin density, there are 13 ellipsoids.  Let's
-    # change spin density of the first 5 ellipoids
+    # change spin density of the first 5 ellipsoids
     E[:5, 7] = np.linspace(.1, .9, 5)
 
     # Make the Shepp-Logan phantom with modified spin densities

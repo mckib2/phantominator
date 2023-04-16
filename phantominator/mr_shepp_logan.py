@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
-'''Shepp-Logan phantom for use with MR simulations.'''
+"""Shepp-Logan phantom for use with MR simulations."""
+
+from typing import Union, Optional, Tuple, Dict
 
 import numpy as np
+import numpy.typing as npt
 
-def mr_shepp_logan(N, E=None, B0=3, T2star=False, zlims=(-1, 1)):
-    '''Shepp-Logan phantom with MR tissue parameters.
+
+def mr_shepp_logan(N: Union[int, npt.ArrayLike],
+                   E: Optional[npt.ArrayLike] = None,
+                   B0: float = 3.0,
+                   T2star: bool = False,
+                   zlims: Tuple[float, float] = (-1, 1)) -> Tuple[npt.ArrayLike, npt.ArrayLike, npt.ArrayLike]:
+    """Shepp-Logan phantom with MR tissue parameters.
 
     Parameters
     ----------
@@ -29,7 +37,7 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False, zlims=(-1, 1)):
             - chi (change in magnetic susceptibility)
 
         If spin density is negative, M0, T1, and T2 will be subtracted
-        instead of cummulatively added.
+        instead of cumulatively added.
     B0 : float, optimal
         Field strength (in Tesla).
     T2star : bool, optional
@@ -65,7 +73,7 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False, zlims=(-1, 1)):
            "2D & 3D Shepp-Logan phantom standards for MRI." 2008 19th
            International Conference on Systems Engineering. IEEE,
            2008.
-    '''
+    """
 
     # Determine size of phantom
     if np.isscalar(N):
@@ -100,7 +108,7 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False, zlims=(-1, 1)):
     chis = E[:, 12]
 
     # Initialize array
-    X, Y, Z = np.meshgrid( # meshgrid does X, Y backwards
+    X, Y, Z = np.meshgrid(  # meshgrid does X, Y backwards
         np.linspace(-1, 1, M),
         np.linspace(-1, 1, L),
         np.linspace(zlims[0], zlims[1], N))
@@ -110,11 +118,6 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False, zlims=(-1, 1)):
     T1s = np.zeros((L, M, N))
     T2s = np.zeros((L, M, N))
     M0s = np.zeros((L, M, N))
-
-    # We'll need the gyromagnetic ratio if returning T2star values
-    if T2star:
-        # see https://en.wikipedia.org/wiki/Gyromagnetic_ratio:
-        gamma0 = 267.52219 # 10^6 rad⋅s−1⋅T⋅−1
 
     # Put ellipses where they need to be
     for ii in range(E.shape[0]):
@@ -134,6 +137,9 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False, zlims=(-1, 1)):
 
         # Use T2star values if user asked for them
         if T2star:
+            # We'll need the gyromagnetic ratio if returning T2star values
+            # see https://en.wikipedia.org/wiki/Gyromagnetic_ratio:
+            gamma0 = 267.52219  # 10^6 rad⋅s−1⋅T⋅−1
             T2s[idx] += sgn[ii]/(1/T2[ii] + gamma0*np.abs(
                 B0*chis[ii]))
         else:
@@ -145,17 +151,17 @@ def mr_shepp_logan(N, E=None, B0=3, T2star=False, zlims=(-1, 1)):
         else:
             T1s[idx] += sgn[ii]*T1[ii]
 
-    return(M0s, T1s, T2s)
+    return M0s, T1s, T2s
 
 
-def mr_ellipsoid_parameters():
-    '''Returns parameters of ellipsoids.
+def mr_ellipsoid_parameters() -> npt.ArrayLike:
+    """Returns parameters of ellipsoids.
 
     Returns
     -------
     E : array_like
         Parameters for the ellipsoids used to construct the phantom.
-    '''
+    """
     params = _mr_relaxation_parameters()
 
     E = np.zeros((15, 13))
@@ -234,8 +240,9 @@ def mr_ellipsoid_parameters():
 
     return E
 
-def _mr_relaxation_parameters():
-    '''Returns MR relaxation parameters for certain tissues.
+
+def _mr_relaxation_parameters() -> Dict[str, npt.ArrayLike]:
+    """Returns MR relaxation parameters for certain tissues.
 
     Returns
     -------
@@ -246,7 +253,7 @@ def _mr_relaxation_parameters():
     -----
     If t1 is None, the model T1 = A*B0^C will be used.  If t1 is not
     np.nan, then specified t1 will be used.
-    '''
+    """
 
     # params['tissue-name'] = [A, C, (t1 value if explicit), t2, chi]
     params = dict()

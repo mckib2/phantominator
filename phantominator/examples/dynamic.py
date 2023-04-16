@@ -1,12 +1,12 @@
-'''Basic usage of dynamic phantom.'''
+"""Basic usage of dynamic phantom."""
 
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 from phantominator import dynamic
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     # Create a phantom with nt time points
     N = 128
     nt = 30
@@ -15,14 +15,15 @@ if __name__ == '__main__':
     # Some code to look at the animation
     fig = plt.figure()
     ax = plt.imshow(ph[..., 0], cmap='gray')
+    plt.title("2+1D simulation")
 
     def init():
-        '''Initialize ax data.'''
+        """Initialize ax data."""
         ax.set_array(ph[..., 0])
         return(ax,)
 
     def animate(frame):
-        '''Update frame.'''
+        """Update frame."""
         ax.set_array(ph[..., frame])
         return(ax,)
 

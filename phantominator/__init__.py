@@ -1,4 +1,4 @@
-'''Bring functions up to the correct level.'''
+"""Bring functions up to the correct level."""
 
 from .ct_shepp_logan import (
     ct_shepp_logan, ct_shepp_logan_params_2d,

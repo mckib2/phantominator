@@ -1,4 +1,4 @@
-'''Replicate paper figures from [1]_.
+"""Replicate paper figures from [1]_.
 
 References
 ----------
@@ -6,7 +6,7 @@ References
        "2D & 3D Shepp-Logan phantom standards for MRI." 2008 19th
        International Conference on Systems Engineering. IEEE,
        2008.
-'''
+"""
 
 from time import time
 
@@ -16,8 +16,9 @@ from ssfp import spoiled_gre
 
 from phantominator import shepp_logan
 
+
 def se90(T1, T2, TR, TE, M0=1):
-    '''Spin echo simulation assuming 90 deg flip angle
+    """Spin echo simulation assuming 90 deg flip angle
 
     Parameters
     ----------
@@ -36,7 +37,7 @@ def se90(T1, T2, TR, TE, M0=1):
     -------
     S : array_like
         Simulated magnitude spin echo image.
-    '''
+    """
 
     # Make sure we don't divide by zero
     idx1 = np.nonzero(T1)
@@ -49,6 +50,7 @@ def se90(T1, T2, TR, TE, M0=1):
     S = M0*(1 - E1)*E2
     return S
 
+
 if __name__ == '__main__':
 
     # Generate a single slice of 3D Shepp-Logan phantom, z=-.25
@@ -56,7 +58,7 @@ if __name__ == '__main__':
     t0 = time()
     N = 256
     M0, T1, T2 = shepp_logan((N, N, 1), MR=True, zlims=(-.25, .25))
-    print('Took %g seconds' % (time() - t0))
+    print(f"Took {time() - t0} seconds")
 
     # This is a 3D simulation, but only 1 slice, so remove singleton
     # dimension at the end for simplicity:

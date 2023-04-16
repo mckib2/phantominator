@@ -1,8 +1,9 @@
-'''Demonstrate how to use MR Shepp-Logan.'''
+"""Demonstrate how to use MR Shepp-Logan."""
 
 import matplotlib.pyplot as plt
 
 from phantominator import shepp_logan
+
 
 if __name__ == '__main__':
 

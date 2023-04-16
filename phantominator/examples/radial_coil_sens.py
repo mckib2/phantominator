@@ -1,13 +1,14 @@
-'''Show how to generate radial kspace with coil sensitivities.'''
+"""Show how to generate radial kspace with coil sensitivities."""
 
 import numpy as np
 from scipy.cluster.vq import whiten # pylint: disable=C0412
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from pygrappa import radialgrappaop, grog # pylint: disable=E0611
+from pygrappa import radialgrappaop, grog  # pylint: disable=E0611
 
 from phantominator import kspace_shepp_logan
 from phantominator.traj import radial
+
 
 if __name__ == '__main__':
 
@@ -33,12 +34,12 @@ if __name__ == '__main__':
     ax = plt.imshow(coil_ims[..., 0], cmap='gray')
 
     def init():
-        '''Initialize ax data.'''
+        """Initialize ax data."""
         ax.set_array(coil_ims[..., 0])
         return(ax,)
 
     def animate(frame):
-        '''Update frame.'''
+        """Update frame."""
         ax.set_array(coil_ims[..., frame])
         return(ax,)
 

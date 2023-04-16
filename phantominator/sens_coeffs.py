@@ -1,13 +1,18 @@
-'''Hard coded sensitivity map coefficients.'''
+"""Hard coded sensitivity map coefficients."""
+
+from typing import Tuple
 
 import numpy as np
+import numpy.typing as npt
 
-def _sens_info():
-    '''Gives back max coil number of coefficient number.'''
-    return (8, 36)
 
-def _sens_coeffs(coil): # pylint: disable=R0911
-    '''Get coefficients for a specified coil.
+def _sens_info() -> Tuple[int, int]:
+    """Gives back max coil number of coefficient number."""
+    return 8, 36
+
+
+def _sens_coeffs(coil) -> npt.ArrayLike:  # pylint: disable=R0911
+    """Get coefficients for a specified coil.
 
     Notes
     -----
@@ -20,9 +25,9 @@ def _sens_coeffs(coil): # pylint: disable=R0911
     .. [1] Guerquin-Kern, Matthieu, et al. "Realistic analytical
            phantoms for parallel magnetic resonance imaging." IEEE
            Transactions on Medical Imaging 31.3 (2011): 626-636.
-    '''
+    """
 
-    if coil == 0: # pylint: disable=R1705
+    if coil == 0:  # pylint: disable=R1705
         return np.array([
             -0.000492664219250141 + 1j*0.00243037030094894,
             0.00288946657806461 - 1j*0.0191953858873134,

@@ -1,9 +1,11 @@
-'''Simple dynamic numerical phantom.'''
+"""Simple dynamic numerical phantom."""
 
 import numpy as np
+import numpy.typing as npt
 
-def dynamic(N, nt):
-    '''Concentric circles with dynamic movement.
+
+def dynamic(N: int, nt: int) -> npt.ArrayLike:
+    """Concentric circles with dynamic movement.
 
     Parameters
     ----------
@@ -16,7 +18,7 @@ def dynamic(N, nt):
     -------
     ph : array_like
         Phantom of size (N, N, nt), time is last dimension.
-    '''
+    """
 
     ph = np.zeros((N, N, nt))
     X, Y = np.meshgrid(

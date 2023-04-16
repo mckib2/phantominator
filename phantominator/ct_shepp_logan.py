@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
-'''The canonical Shepp-Logan phantom used for CT simulations.'''
+"""The canonical Shepp-Logan phantom used for CT simulations."""
+
+from typing import Tuple, Optional, Union
 
 import numpy as np
+import numpy.typing as npt
+
 
 def ct_shepp_logan(
-        N, modified=True, E=None, ret_E=False, zlims=(-1, 1)):
-    '''Generate a Shepp-Logan phantom of size (N, N).
+        N: Union[int, npt.ArrayLike],
+        modified: bool = True,
+        E: Optional[npt.ArrayLike] = None,
+        ret_E: bool = False,
+        zlims: Tuple[float, float] = (-1, 1)) -> Union[npt.ArrayLike, Tuple[npt.ArrayLike, npt.ArrayLike]]:
+    """Generate a Shepp-Logan phantom of size (N, N).
 
     Parameters
     ----------
@@ -80,29 +88,28 @@ def ct_shepp_logan(
            phantom in the Fourier domain." Magnetic Resonance in
            Medicine: An Official Journal of the International Society
            for Magnetic Resonance in Medicine 58.2 (2007): 430-436.
-    '''
+    """
 
     # Get size of phantom
     if np.isscalar(N):
         M, N = N, N
-        is2D = True
-    else:
-        if len(N) == 2:
-            M, N = N[:]
-            is2D = True
-        elif len(N) == 3:
-            L, M, N = N[:]
-            is2D = False
-        else:
-            raise ValueError('Dimension must be scalar, 2D, or 3D!')
-
-    # Give back either a 2D or 3D phantom
-    if is2D:
         return ct_shepp_logan_2d(M, N, modified, E, ret_E)
-    return ct_shepp_logan_3d(L, M, N, modified, E, ret_E, zlims)
 
-def ct_shepp_logan_2d(M, N, modified, E, ret_E):
-    '''Make a 2D phantom.'''
+    if len(N) == 2:
+        M, N = N[:]
+        return ct_shepp_logan_2d(M, N, modified, E, ret_E)
+    elif len(N) == 3:
+        L, M, N = N[:]
+        return ct_shepp_logan_3d(L, M, N, modified, E, ret_E, zlims)
+    else:
+        raise ValueError('Dimension N must be scalar, 2D, or 3D!')
+
+
+def ct_shepp_logan_2d(M: int, N: int,
+                      modified: bool,
+                      E: Optional[npt.ArrayLike],
+                      ret_E: bool) -> Union[npt.ArrayLike, Tuple[npt.ArrayLike, npt.ArrayLike]]:
+    """Make a 2D phantom."""
 
     # Get the ellipse parameters the user asked for
     if E is None:
@@ -120,7 +127,7 @@ def ct_shepp_logan_2d(M, N, modified, E, ret_E):
     theta = E[:, 5]
 
     # 2x2 square => FOV = (-1, 1)
-    X, Y = np.meshgrid( # meshgrid needs linspace in opposite order
+    X, Y = np.meshgrid(  # meshgrid needs linspace in opposite order
         np.linspace(-1, 1, N),
         np.linspace(-1, 1, M))
     ph = np.zeros((M, N))
@@ -134,18 +141,23 @@ def ct_shepp_logan_2d(M, N, modified, E, ret_E):
 
         # Find indices falling inside the ellipse
         idx = (
-            ((X - xc)*ct0 + (Y - yc)*st0)**2/a**2 +
-            ((X - xc)*st0 - (Y - yc)*ct0)**2/b**2 <= 1)
+                ((X - xc) * ct0 + (Y - yc) * st0) ** 2 / a ** 2 +
+                ((X - xc) * st0 - (Y - yc) * ct0) ** 2 / b ** 2 <= 1)
 
         # Sum of ellipses
         ph[idx] += grey[ii]
 
     if ret_E:
-        return(ph, E)
+        return ph, E
     return ph
 
-def ct_shepp_logan_3d(L, M, N, modified, E, ret_E, zlims):
-    '''Make a 3D phantom.'''
+
+def ct_shepp_logan_3d(L: int, M: int, N: int,
+                      modified: bool,
+                      E: Optional[npt.ArrayLike],
+                      ret_E: bool,
+                      zlims: Tuple[float, float]) -> Union[npt.ArrayLike, Tuple[npt.ArrayLike, npt.ArrayLike]]:
+    """Make a 3D phantom."""
 
     # Make sure zlims are appropriate
     assert len(zlims) == 2, (
@@ -172,7 +184,7 @@ def ct_shepp_logan_3d(L, M, N, modified, E, ret_E, zlims):
     theta = E[:, 7]
 
     # Initialize array
-    X, Y, Z = np.meshgrid( # meshgrid does X, Y backwards
+    X, Y, Z = np.meshgrid(  # meshgrid does X, Y backwards
         np.linspace(-1, 1, M),
         np.linspace(-1, 1, L),
         np.linspace(zlims[0], zlims[1], N))
@@ -189,27 +201,28 @@ def ct_shepp_logan_3d(L, M, N, modified, E, ret_E, zlims):
         # Find indices falling inside the ellipsoid, ellipses only
         # rotated in xy plane
         idx = (
-            ((X - xc)*ct0 + (Y - yc)*st0)**2/a**2 +
-            ((X - xc)*st0 - (Y - yc)*ct0)**2/b**2 +
-            (Z - zc)**2/c**2 <= 1)
+                ((X - xc) * ct0 + (Y - yc) * st0) ** 2 / a ** 2 +
+                ((X - xc) * st0 - (Y - yc) * ct0) ** 2 / b ** 2 +
+                (Z - zc) ** 2 / c ** 2 <= 1)
 
         # Add ellipses together
         ph[idx] += gray[ii]
 
     if ret_E:
-        return(ph, E)
+        return ph, E
     return ph
 
-def ct_shepp_logan_params_2d():
-    '''Return parameters for original Shepp-Logan phantom.
+
+def ct_shepp_logan_params_2d() -> npt.ArrayLike:
+    """Return parameters for original Shepp-Logan phantom.
 
     Returns
     -------
     E : array_like, shape (10, 6)
         Parameters for the 10 ellipses used to construct the phantom.
-    '''
+    """
 
-    E = np.zeros((10, 6)) # (10, [A, a, b, xc, yc, theta])
+    E = np.zeros((10, 6))  # (10, [A, a, b, xc, yc, theta])
     E[:, 0] = [2, -.98, -.02, -.02, .01, .01, .01, .01, .01, .01]
     E[:, 1] = [
         .69, .6624, .11, .16, .21, .046, .046, .046, .023, .023]
@@ -219,49 +232,52 @@ def ct_shepp_logan_params_2d():
     E[:, 5] = np.deg2rad([0, 0, -18, 18, 0, 0, 0, 0, 0, 0])
     return E
 
-def ct_modified_shepp_logan_params_2d():
-    '''Return parameters for modified Shepp-Logan phantom.
+
+def ct_modified_shepp_logan_params_2d() -> npt.ArrayLike:
+    """Return parameters for modified Shepp-Logan phantom.
 
     Returns
     -------
     E : array_like, shape (10, 6)
         Parameters for the 10 ellipses used to construct the phantom.
-    '''
+    """
     E = ct_shepp_logan_params_2d()
     E[:, 0] = [1, -0.8, -0.2, -0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     return E
 
-def ct_shepp_logan_params_3d():
-    '''Ellipsoid parameters for 3D Shepp-Logan.
+
+def ct_shepp_logan_params_3d() -> npt.ArrayLike:
+    """Ellipsoid parameters for 3D Shepp-Logan.
 
     Returns
     -------
     E : array_like, shape (10, 8)
         Parameters for the 10 ellipsoids used to construct phantom.
-    '''
+    """
 
     E = np.zeros((10, 8))
     # [ gray, x, y, z, a, b, c, theta ]
     E[0, :] = [2, 0.69, 0.92, 0.9, 0, 0, 0, 0]
     E[1, :] = [-.8, 0.6624, 0.874, 0.88, 0, 0, 0, 0]
-    E[2, :] = [-.2, 0.41, 0.16, 0.21, -0.22, 0, -0.25, 3*np.pi/5]
-    E[3, :] = [-.2, 0.31, 0.11, 0.22, 0.22, 0, -0.25, 2*np.pi/5]
+    E[2, :] = [-.2, 0.41, 0.16, 0.21, -0.22, 0, -0.25, 3 * np.pi / 5]
+    E[3, :] = [-.2, 0.31, 0.11, 0.22, 0.22, 0, -0.25, 2 * np.pi / 5]
     E[4, :] = [.2, 0.21, 0.25, 0.5, 0, 0.35, -0.25, 0]
     E[5, :] = [.2, 0.046, 0.046, 0.046, 0, 0.1, -0.25, 0]
     E[6, :] = [.1, 0.046, 0.023, 0.02, -0.08, -0.65, -0.25, 0]
-    E[7, :] = [.1, 0.046, 0.023, 0.02, 0.06, -0.65, -0.25, np.pi/2]
-    E[8, :] = [.2, 0.056, 0.04, 0.1, 0.06, -0.105, 0.625, np.pi/2]
+    E[7, :] = [.1, 0.046, 0.023, 0.02, 0.06, -0.65, -0.25, np.pi / 2]
+    E[8, :] = [.2, 0.056, 0.04, 0.1, 0.06, -0.105, 0.625, np.pi / 2]
     E[9, :] = [-.2, 0.056, 0.056, 0.1, 0, 0.1, 0.625, 0]
     return E
 
-def ct_modified_shepp_logan_params_3d():
-    '''Return parameters for modified Shepp-Logan phantom.
+
+def ct_modified_shepp_logan_params_3d() -> npt.ArrayLike:
+    """Return parameters for modified Shepp-Logan phantom.
 
     Returns
     -------
     E : array_like, shape (10, 8)
         Parameters for the 10 ellipsoids used to construct phantom.
-    '''
+    """
     E = ct_shepp_logan_params_3d()
     E[:, 0] = [1, -0.8, -0.2, -0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     return E

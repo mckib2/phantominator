@@ -1,8 +1,10 @@
-'''Example demonstrating how to make a Shepp-Logan phantom.'''
+"""Example demonstrating how to make a Shepp-Logan phantom."""
 
 import numpy as np
 import matplotlib.pyplot as plt
+
 from phantominator import shepp_logan
+
 
 if __name__ == '__main__':
 

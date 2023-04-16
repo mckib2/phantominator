@@ -1,22 +1,26 @@
-'''Analytical form of Shepp-Logan kspace.'''
+"""Analytical form of Shepp-Logan kspace."""
 
 from time import time
-import numpy as np
-try:
-    from math import tau
-except:
-    tau = 2*np.pi
+from math import tau
+from typing import Optional
 
-from scipy.special import j1 # pylint: disable=E0611
+import numpy as np
+import numpy.typing as npt
+from scipy.special import j1
 
 from phantominator import (
-    ct_shepp_logan_params_2d, ct_modified_shepp_logan_params_2d)
+    ct_shepp_logan_params_2d,
+    ct_modified_shepp_logan_params_2d
+)
 from phantominator.sens_coeffs import _sens_coeffs, _sens_info
 
 
 def kspace_shepp_logan(
-        kx, ky=None, modified=True, E=None, ncoil=None):
-    '''2D Shepp-Logan phantom kspace measurements at points (kx, ky).
+        kx: npt.ArrayLike, ky: Optional[npt.ArrayLike] = None,
+        modified: bool = True,
+        E: Optional[npt.ArrayLike] = None,
+        ncoil: int = None) -> npt.ArrayLike:
+    """2D Shepp-Logan phantom kspace measurements at points (kx, ky).
 
     Parameters
     ----------
@@ -30,6 +34,8 @@ def kspace_shepp_logan(
         values for better contrast.
     E : array_like, optional
         See ct_shepp_logan for details.
+    ncoil : int, optional
+        Generate sensitivity maps for ncoil coils.
 
     Returns
     -------
@@ -43,7 +49,7 @@ def kspace_shepp_logan(
            from data acquired on a general nonregular grid by
            pseudoinverse calculation." IEEE transactions on medical
            imaging 19.12 (2000): 1160-1167.
-    '''
+    """
 
     if ky is None:
         k = np.asarray(kx)
@@ -77,12 +83,12 @@ def kspace_shepp_logan(
 
         # Build up the coefficient matrix, we'll do all coils for
         # each ellipse at the same time for efficiency
-        coeffs = np.zeros((ncoil, NUM_COEFF), dtype=np.complex)
+        coeffs = np.zeros((ncoil, NUM_COEFF), dtype=complex)
         for cc in range(ncoil):
             coeffs[cc, :] = _sens_coeffs(cc)
 
         # Add up all the ellipse kspaces with all coils
-        val = np.zeros((k.size, ncoil), dtype=np.complex)
+        val = np.zeros((k.size, ncoil), dtype=complex)
         for ii in range(E.shape[0]):
             # Have to get screwy with the center coordinates to make
             # it work.  Not sure what's different between us and
@@ -99,23 +105,24 @@ def kspace_shepp_logan(
     # BART's traj function
     # FIXME: Scaling removed so that this matches Matlab mriphantom.
     #        Which was is correct?
-    #k /= 2
+    # k /= 2
 
     # Sum of ellipses
     return np.sum(_kspace_ellipse(k, E), axis=-1)
 
-def _kspace_ellipse(k, E):
-    '''Generates Fourier transform of (an array of) a general ellipse.
+
+def _kspace_ellipse(k: npt.ArrayLike, E: npt.ArrayLike) -> npt.ArrayLike:
+    """Generates Fourier transform of (an array of) a general ellipse.
 
     Notes
     -----
     Implements equation [21] in [1]_.
-    '''
+    """
     k = np.asarray(k)
     rho, A, B, xc, yc, alpha = np.asarray(E).T
     E = rho*A*B
     Ec = xc + 1j*yc
-    ret = np.empty(shape=np.shape(k) + np.shape(E), dtype=np.complex)
+    ret = np.empty(shape=np.shape(k) + np.shape(E), dtype=complex)
     zero = np.isclose(k, 0)
     ret[zero] = .5*tau*E  # lim a->0: j1(tau * a) / a = .5 * tau
     k = k[~zero, None]
@@ -127,13 +134,14 @@ def _kspace_ellipse(k, E):
         ret[~zero] = rotation*E*j1(tau*athetak)/athetak
     return ret
 
-def _a(A, B, theta, alpha):
+
+def _a(A: npt.ArrayLike, B: npt.ArrayLike, theta: npt.ArrayLike, alpha: npt.ArrayLike) -> npt.ArrayLike:
     return np.sqrt(
         A**2*np.cos(theta - alpha)**2 + B**2*np.sin(theta - alpha)**2)
 
+
 def _kspace_ellipse_sens(k, xc, yc, rho, A, B, theta, coeffs):
-    '''Fourier transform of ellipse with polynomial sensitivity map.
-    '''
+    """Fourier transform of ellipse with polynomial sensitivity map."""
 
     width = np.array([B, A])
     ct, st = np.cos(theta), np.sin(theta)
@@ -142,8 +150,9 @@ def _kspace_ellipse_sens(k, xc, yc, rho, A, B, theta, coeffs):
 
     return rho*MRDataEllipseSinusoidal(k, Dmat, Rmat, xc, yc, coeffs)
 
+
 def MRDataEllipseSinusoidal(k, Dmat, Rmat, xc, yc, coeffs):
-    '''Sinusoidal model'''
+    """Sinusoidal model"""
     N = coeffs.shape[1]
     L = int(np.floor(np.sqrt(N)))
 
@@ -171,6 +180,7 @@ def MRDataEllipseSinusoidal(k, Dmat, Rmat, xc, yc, coeffs):
 
     return tau*np.linalg.det(Dmat)*coeffs @ (
         np.exp(1j*tau*(xc*kx + yc*ky))*Gval)
+
 
 if __name__ == '__main__':
     pass

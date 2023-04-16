@@ -1,4 +1,4 @@
-
+#!/bin/bash
 # Remove any existing distribution archives
 rm -rf dist
 
